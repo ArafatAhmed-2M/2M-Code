@@ -9,14 +9,12 @@ import json
 import logging
 import os
 
-from mistralai import Mistral
-
 logger = logging.getLogger("2mcode.providers.mistral")
 
 _client = None
 
 
-def _get_client() -> Mistral:
+def _get_client():
     """
     Lazily initialize the Mistral client.
     Raises ValueError if the API key is not set.
@@ -24,6 +22,14 @@ def _get_client() -> Mistral:
     global _client
     if _client is not None:
         return _client
+
+    try:
+        from mistralai.client import Mistral
+    except ImportError as e:
+        raise RuntimeError(
+            "The mistralai package is outdated or not installed correctly. "
+            "Please run: pip install mistralai>=1.0.0 --upgrade"
+        ) from e
 
     api_key = os.environ.get("MISTRAL_API_KEY")
     if not api_key:

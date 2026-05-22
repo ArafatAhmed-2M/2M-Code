@@ -8,16 +8,13 @@ Use list_models() to fetch the current live model catalog from the Anthropic API
 import logging
 import os
 
-import anthropic
-
 logger = logging.getLogger("2mcode.providers.anthropic")
 
 # API key is read from environment — never hardcoded
-_api_key = os.environ.get("ANTHROPIC_API_KEY")
 _client = None
 
 
-def _get_client() -> anthropic.Anthropic:
+def _get_client():
     """
     Lazily initialize the Anthropic client.
     Raises ValueError if the API key is not set.
@@ -26,6 +23,7 @@ def _get_client() -> anthropic.Anthropic:
     if _client is not None:
         return _client
 
+    import anthropic
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ValueError(
@@ -33,6 +31,7 @@ def _get_client() -> anthropic.Anthropic:
             "Set it with: export ANTHROPIC_API_KEY='your-key-here'"
         )
 
+    import anthropic
     _client = anthropic.Anthropic(api_key=api_key)
     return _client
 
@@ -115,6 +114,7 @@ async def call(
 
     logger.info("Calling Anthropic API: model=%s max_tokens=%d tools=%d", model, max_tokens, len(anthropic_tools))
 
+    import anthropic
     try:
         resp = client.messages.create(**kwargs)
     except anthropic.AuthenticationError as e:
