@@ -3,8 +3,8 @@
 
 # Build Binaries & Executables
 bin/
-2m
-2m.exe
+/2m
+/2m.exe
 *.exe
 *.exe~
 *.dll
