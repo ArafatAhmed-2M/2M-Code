@@ -7,6 +7,10 @@ Use list_models() to fetch the current live model catalog from the Google API.
 
 import logging
 import os
+import warnings
+
+# Suppress the deprecation warning for google.generativeai so it doesn't spam the terminal
+warnings.filterwarnings("ignore", category=FutureWarning, module="google.generativeai")
 
 import google.generativeai as genai
 
