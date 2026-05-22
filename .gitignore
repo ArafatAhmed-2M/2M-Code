@@ -1,0 +1,79 @@
+# 2M Code Git Ignore System
+# Tailored for Go + Python + SQLite 2M Code stack
+
+# Build Binaries & Executables
+bin/
+2m
+2m.exe
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# SQLite Event Bus & Local Session Databases
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+.2mcode/sessions/
+/sessions/
+
+# Python Cache, Bytecode & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.venv/
+venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment Variables & Secrets (CRITICAL for LLM Keys)
+.env
+.env.*
+.secrets
+*.pem
+*.key
+*.token
+gpg.txt
+
+# OS Specific Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor Settings
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+*~
