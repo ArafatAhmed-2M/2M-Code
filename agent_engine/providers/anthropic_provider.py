@@ -2,7 +2,7 @@
 2M Code — Anthropic Provider Adapter
 
 Adapts the Anthropic SDK (Claude models) to the unified 2M Code response format.
-Supports: claude-opus-4-5, claude-sonnet-4-6, claude-haiku-4-5
+Use list_models() to fetch the current live model catalog from the Anthropic API.
 """
 
 import logging
@@ -35,6 +35,35 @@ def _get_client() -> anthropic.Anthropic:
 
     _client = anthropic.Anthropic(api_key=api_key)
     return _client
+
+
+def list_models() -> list[dict]:
+    """
+    Fetch the list of available Anthropic models from the live API.
+
+    Returns:
+        List of dicts: [{id, name, description, context_length}]
+        Falls back to hardcoded defaults if the API call fails.
+    """
+    try:
+        client = _get_client()
+        resp = client.models.list()
+        models = []
+        for m in resp.data:
+            models.append({
+                "id": m.id,
+                "name": m.display_name if hasattr(m, "display_name") else m.id,
+                "description": "",
+                "context_length": 0,
+            })
+        return models
+    except Exception as e:
+        logger.warning("Could not fetch Anthropic models from API: %s — using defaults", e)
+        return [
+            {"id": "claude-opus-4-5", "name": "Claude Opus 4.5", "description": "Most capable Claude model", "context_length": 200000},
+            {"id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6", "description": "Balanced Claude model", "context_length": 200000},
+            {"id": "claude-haiku-4-5", "name": "Claude Haiku 4.5", "description": "Fastest Claude model", "context_length": 200000},
+        ]
 
 
 def _convert_tools(tools: list[dict]) -> list[dict]:

@@ -2,7 +2,7 @@
 2M Code — Mistral Provider Adapter
 
 Adapts the Mistral SDK to the unified 2M Code response format.
-Supports: mistral-large, mistral-medium
+Use list_models() to fetch the current live model catalog from the Mistral API.
 """
 
 import json
@@ -34,6 +34,38 @@ def _get_client() -> Mistral:
 
     _client = Mistral(api_key=api_key)
     return _client
+
+
+def list_models() -> list[dict]:
+    """
+    Fetch the list of available Mistral models from the live API.
+
+    Returns:
+        List of dicts: [{id, name, description, context_length}]
+        Falls back to hardcoded defaults if the API call fails.
+    """
+    try:
+        client = _get_client()
+        resp = client.models.list()
+        models = []
+        for m in (resp.data or []):
+            models.append({
+                "id": m.id,
+                "name": m.id,
+                "description": getattr(m, "description", ""),
+                "context_length": 0,
+            })
+        models.sort(key=lambda x: x["id"])
+        return models
+    except Exception as e:
+        logger.warning("Could not fetch Mistral models from API: %s — using defaults", e)
+        return [
+            {"id": "mistral-large-latest", "name": "Mistral Large", "description": "Most capable Mistral model", "context_length": 131072},
+            {"id": "mistral-medium-latest", "name": "Mistral Medium", "description": "Balanced Mistral model", "context_length": 32000},
+            {"id": "mistral-small-latest", "name": "Mistral Small", "description": "Fast Mistral model", "context_length": 32000},
+            {"id": "codestral-latest", "name": "Codestral", "description": "Code-specialized Mistral model", "context_length": 32000},
+            {"id": "open-mixtral-8x22b", "name": "Mixtral 8x22B", "description": "Open-source mixture of experts", "context_length": 65536},
+        ]
 
 
 def _convert_tools_to_mistral(tools: list[dict]) -> list[dict]:

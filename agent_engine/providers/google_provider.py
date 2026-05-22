@@ -2,7 +2,7 @@
 2M Code — Google Gemini Provider Adapter
 
 Adapts the Google Generative AI SDK (Gemini models) to the unified 2M Code response format.
-Supports: gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash
+Use list_models() to fetch the current live model catalog from the Google API.
 """
 
 import logging
@@ -33,6 +33,42 @@ def _ensure_configured():
 
     genai.configure(api_key=api_key)
     _configured = True
+
+
+def list_models() -> list[dict]:
+    """
+    Fetch the list of available Google Gemini models from the live API.
+    Only returns models that support generateContent (chat-capable).
+
+    Returns:
+        List of dicts: [{id, name, description, context_length}]
+        Falls back to hardcoded defaults if the API call fails.
+    """
+    try:
+        _ensure_configured()
+        models = []
+        for m in genai.list_models():
+            # Only include models that can generate content
+            if "generateContent" not in (m.supported_generation_methods or []):
+                continue
+            # Strip the "models/" prefix for cleaner IDs
+            model_id = m.name.replace("models/", "")
+            models.append({
+                "id": model_id,
+                "name": m.display_name if hasattr(m, "display_name") else model_id,
+                "description": m.description if hasattr(m, "description") else "",
+                "context_length": getattr(m, "input_token_limit", 0),
+            })
+        models.sort(key=lambda x: x["id"])
+        return models
+    except Exception as e:
+        logger.warning("Could not fetch Google models from API: %s — using defaults", e)
+        return [
+            {"id": "gemini-1.5-pro", "name": "Gemini 1.5 Pro", "description": "Most capable Gemini model", "context_length": 1000000},
+            {"id": "gemini-1.5-flash", "name": "Gemini 1.5 Flash", "description": "Fast Gemini model", "context_length": 1000000},
+            {"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "description": "Latest fast Gemini model", "context_length": 1000000},
+            {"id": "gemini-2.0-flash-lite", "name": "Gemini 2.0 Flash Lite", "description": "Lightest Gemini model", "context_length": 1000000},
+        ]
 
 
 def _convert_tools_to_gemini(tools: list[dict]) -> list:

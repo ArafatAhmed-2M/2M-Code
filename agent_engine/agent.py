@@ -4,21 +4,38 @@
 Routes incoming agent requests to the correct provider adapter.
 All providers return the same normalized response shape:
 {content, tool_calls, input_tokens, output_tokens}
+
+Also exposes list_all_models() which queries every configured provider
+for its live model catalog and returns a unified list.
 """
 
+import asyncio
 import logging
 
-from providers import anthropic_provider, google_provider, openai_provider, mistral_provider
+from providers import (
+    anthropic_provider,
+    google_provider,
+    openai_provider,
+    mistral_provider,
+    cohere_provider,
+    groq_provider,
+    ollama_provider,
+    openrouter_provider,
+)
 from tools import get_tool_definitions
 
 logger = logging.getLogger("2mcode.agent")
 
 # Provider registry — maps provider name to its module
 PROVIDERS = {
-    "anthropic": anthropic_provider,
-    "google": google_provider,
-    "openai": openai_provider,
-    "mistral": mistral_provider,
+    "anthropic":  anthropic_provider,
+    "google":     google_provider,
+    "openai":     openai_provider,
+    "mistral":    mistral_provider,
+    "cohere":     cohere_provider,
+    "groq":       groq_provider,
+    "ollama":     ollama_provider,
+    "openrouter": openrouter_provider,
 }
 
 
@@ -38,7 +55,11 @@ async def run_agent(req) -> dict:
         ValueError: If the request parameters are invalid.
     """
     if req.provider not in PROVIDERS:
-        raise KeyError(f"Unknown provider: {req.provider}")
+        supported = ", ".join(sorted(PROVIDERS.keys()))
+        raise KeyError(
+            f"Unknown provider: '{req.provider}'. "
+            f"Supported providers: {supported}"
+        )
 
     provider = PROVIDERS[req.provider]
 
@@ -76,3 +97,55 @@ async def run_agent(req) -> dict:
     )
 
     return result
+
+
+async def list_all_models(providers_filter: list[str] | None = None) -> dict:
+    """
+    Fetch available models from all (or a subset of) providers concurrently.
+
+    Each provider's list_models() is called in parallel. Failures for individual
+    providers are caught and reported as empty lists — so one bad API key doesn't
+    block the entire listing.
+
+    Args:
+        providers_filter: If set, only query these providers. Otherwise query all.
+
+    Returns:
+        Dict mapping provider name to list of model dicts:
+        {
+          "anthropic": [{id, name, description, context_length}, ...],
+          "google":    [...],
+          ...
+        }
+    """
+    target_providers = providers_filter or list(PROVIDERS.keys())
+
+    async def fetch_for_provider(provider_name: str) -> tuple[str, list]:
+        """Fetch models for a single provider, catching all errors."""
+        provider = PROVIDERS.get(provider_name)
+        if provider is None:
+            return provider_name, []
+
+        try:
+            list_fn = getattr(provider, "list_models", None)
+            if list_fn is None:
+                return provider_name, []
+
+            # Handle both async and sync list_models()
+            if asyncio.iscoroutinefunction(list_fn):
+                models = await list_fn()
+            else:
+                # Run sync function in thread pool to avoid blocking event loop
+                loop = asyncio.get_event_loop()
+                models = await loop.run_in_executor(None, list_fn)
+
+            return provider_name, models
+        except Exception as e:
+            logger.warning("Could not list models for provider '%s': %s", provider_name, e)
+            return provider_name, []
+
+    # Fetch all providers concurrently
+    tasks = [fetch_for_provider(p) for p in target_providers]
+    results = await asyncio.gather(*tasks)
+
+    return dict(results)

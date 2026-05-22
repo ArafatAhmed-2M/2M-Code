@@ -12,7 +12,9 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from agent import run_agent
+from pydantic import BaseModel, Field
+
+from agent import run_agent, list_all_models
 
 # Configure logging — never log credentials or secrets
 logging.basicConfig(
@@ -61,6 +63,25 @@ class AgentResponse(BaseModel):
 def health():
     """Health check endpoint used by the Go CLI to verify the engine is ready."""
     return {"status": "ok"}
+
+
+class ModelInfo(BaseModel):
+    id: str
+    name: str
+    description: str
+    context_length: int
+
+@app.get("/models", response_model=dict[str, list[ModelInfo]])
+async def get_models(providers: str | None = None):
+    """
+    Get available models from all configured providers.
+    Optional query param `providers` can be a comma-separated list of providers to filter.
+    """
+    providers_filter = None
+    if providers:
+        providers_filter = [p.strip() for p in providers.split(",")]
+    
+    return await list_all_models(providers_filter=providers_filter)
 
 
 @app.post("/call", response_model=AgentResponse)

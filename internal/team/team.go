@@ -48,10 +48,14 @@ type Workflow struct {
 
 // validProviders lists all supported LLM providers.
 var validProviders = map[string]bool{
-	"anthropic": true,
-	"google":    true,
-	"openai":    true,
-	"mistral":   true,
+	"anthropic":  true,
+	"google":     true,
+	"openai":     true,
+	"mistral":    true,
+	"cohere":     true,
+	"groq":       true,
+	"ollama":     true,
+	"openrouter": true,
 }
 
 // validColors lists all supported terminal colors.

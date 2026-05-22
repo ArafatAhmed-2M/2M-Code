@@ -2,7 +2,7 @@
 2M Code — OpenAI Provider Adapter
 
 Adapts the OpenAI SDK (GPT models) to the unified 2M Code response format.
-Supports: gpt-4o, gpt-4o-mini, o1-preview
+Use list_models() to fetch the current live model catalog from the OpenAI API.
 """
 
 import json
@@ -34,6 +34,41 @@ def _get_client() -> openai.OpenAI:
 
     _client = openai.OpenAI(api_key=api_key)
     return _client
+
+
+def list_models() -> list[dict]:
+    """
+    Fetch the list of available OpenAI models from the live API.
+    Filters to only chat-capable models (gpt-*, o1-*, o3-*).
+
+    Returns:
+        List of dicts: [{id, name, description, context_length}]
+        Falls back to hardcoded defaults if the API call fails.
+    """
+    try:
+        client = _get_client()
+        resp = client.models.list()
+        # Only include chat models, sorted alphabetically
+        chat_prefixes = ("gpt-", "o1", "o3", "chatgpt")
+        models = [
+            {
+                "id": m.id,
+                "name": m.id,
+                "description": "",
+                "context_length": 0,
+            }
+            for m in sorted(resp.data, key=lambda x: x.id)
+            if any(m.id.startswith(p) for p in chat_prefixes)
+        ]
+        return models
+    except Exception as e:
+        logger.warning("Could not fetch OpenAI models from API: %s — using defaults", e)
+        return [
+            {"id": "gpt-4o", "name": "GPT-4o", "description": "Most capable GPT model", "context_length": 128000},
+            {"id": "gpt-4o-mini", "name": "GPT-4o mini", "description": "Fast and affordable GPT model", "context_length": 128000},
+            {"id": "o1-preview", "name": "o1 Preview", "description": "Reasoning model", "context_length": 128000},
+            {"id": "o1-mini", "name": "o1 Mini", "description": "Fast reasoning model", "context_length": 128000},
+        ]
 
 
 def _convert_tools_to_openai(tools: list[dict]) -> list[dict]:

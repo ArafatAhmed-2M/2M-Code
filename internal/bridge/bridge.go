@@ -48,6 +48,14 @@ type ToolCall struct {
 	ID    string                 `json:"id"`    // Provider-specific tool call ID
 }
 
+// ModelInfo represents a single model returned by the /models endpoint.
+type ModelInfo struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Description   string `json:"description"`
+	ContextLength int    `json:"context_length"`
+}
+
 // Bridge is the HTTP client for communicating with the Python agent engine.
 type Bridge struct {
 	baseURL    string
@@ -141,6 +149,36 @@ func (b *Bridge) Call(ctx context.Context, req AgentRequest) (*AgentResponse, er
 	}
 
 	return &agentResp, nil
+}
+
+// ListModels fetches the list of available models from all providers.
+func (b *Bridge) ListModels(ctx context.Context) (map[string][]ModelInfo, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", b.baseURL+"/models", nil)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create models request: %w", err)
+	}
+
+	resp, err := b.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("agent engine not responding at %s: %w", b.baseURL, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("agent engine error: HTTP %d", resp.StatusCode)
+	}
+
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("cannot read models response: %w", err)
+	}
+
+	var models map[string][]ModelInfo
+	if err := json.Unmarshal(respBody, &models); err != nil {
+		return nil, fmt.Errorf("cannot parse models response: %w", err)
+	}
+
+	return models, nil
 }
 
 // WaitForReady polls the health endpoint until the engine is ready or the

@@ -165,14 +165,16 @@ Teams can be stored in:
 
 ## Supported Providers
 
-| Provider | Env Variable | Models |
-|---|---|---|
-| Anthropic | `ANTHROPIC_API_KEY` | claude-opus-4-5, claude-sonnet-4-6, claude-haiku-4-5 |
-| Google | `GOOGLE_API_KEY` | gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash |
-| OpenAI | `OPENAI_API_KEY` | gpt-4o, gpt-4o-mini, o1-preview |
-| Mistral | `MISTRAL_API_KEY` | mistral-large, mistral-medium |
-
-Set API keys as environment variables. You only need keys for the providers your team uses.
+| Provider | Available Models (Examples) | Required Env Var | Notes |
+|---|---|---|---|
+| **Anthropic** | `claude-3.5-sonnet`, `claude-3-opus` | `ANTHROPIC_API_KEY` | Best for complex reasoning and lead roles. |
+| **Google** | `gemini-1.5-pro`, `gemini-2.0-flash` | `GOOGLE_API_KEY` | Massive context window (up to 2M tokens). |
+| **OpenAI** | `gpt-4o`, `o1-preview` | `OPENAI_API_KEY` | Strong all-rounder. |
+| **Mistral** | `mistral-large`, `codestral` | `MISTRAL_API_KEY` | Excellent code-specific models. |
+| **Cohere** | `command-r-plus`, `command-r` | `COHERE_API_KEY` | Strong tool-use and RAG capabilities. |
+| **Groq** | `llama3-70b-8192`, `mixtral-8x7b-32768` | `GROQ_API_KEY` | Ultra-fast LPU inference (500+ tokens/sec). |
+| **OpenRouter**| `anthropic/claude-3.5-sonnet`, etc. | `OPENROUTER_API_KEY` | Unified API for 200+ models. |
+| **Ollama** | `llama3`, `mistral`, `codellama` | *None* | Runs locally and privately. Connects to `localhost:11434` |
 
 ---
 
