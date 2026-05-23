@@ -169,6 +169,11 @@ func (o *Orchestrator) RunChatTurn(ctx context.Context, t *team.Team, sessionID,
 		}
 	}
 
+	// Save memory after each chat turn (best-effort)
+	if o.memorySummarizer != nil {
+		o.saveSessionMemory(ctx, t, sessionID, userMessage)
+	}
+
 	return nil
 }
 

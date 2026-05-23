@@ -190,8 +190,12 @@ func GetProviderAPIKey(provider string) (string, error) {
 }
 
 // ValidateProviderKeys checks that all providers used in a team have API keys set.
+// When OPENROUTER_API_KEY is available, provider-specific keys are not required
+// since OpenRouter can proxy any model through its unified API.
 // Returns a list of missing keys.
 func ValidateProviderKeys(t *Team) []string {
+	openRouterAvailable := os.Getenv("OPENROUTER_API_KEY") != ""
+
 	seen := make(map[string]bool)
 	var missing []string
 
@@ -200,6 +204,17 @@ func ValidateProviderKeys(t *Team) []string {
 			continue
 		}
 		seen[agent.Provider] = true
+
+		// Ollama runs locally — no API key needed
+		if agent.Provider == "ollama" {
+			continue
+		}
+
+		// When OpenRouter key is set, it can proxy any provider's models —
+		// no need to require per-provider keys
+		if openRouterAvailable {
+			continue
+		}
 
 		if _, err := GetProviderAPIKey(agent.Provider); err != nil {
 			missing = append(missing, agent.Provider)

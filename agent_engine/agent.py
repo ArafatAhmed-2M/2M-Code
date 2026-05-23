@@ -11,6 +11,7 @@ for its live model catalog and returns a unified list.
 
 import asyncio
 import logging
+import os
 
 from providers import (
     anthropic_provider,
@@ -38,6 +39,45 @@ PROVIDERS = {
     "openrouter": openrouter_provider,
 }
 
+# Maps each provider to its required env var
+_PROVIDER_ENV_VARS = {
+    "anthropic":  "ANTHROPIC_API_KEY",
+    "google":     "GOOGLE_API_KEY",
+    "openai":     "OPENAI_API_KEY",
+    "mistral":    "MISTRAL_API_KEY",
+    "cohere":     "COHERE_API_KEY",
+    "groq":       "GROQ_API_KEY",
+    "openrouter": "OPENROUTER_API_KEY",
+}
+
+
+def _resolve_provider(provider_name: str):
+    """
+    Return the provider module for the given name.
+    If the provider's API key is missing but OPENROUTER_API_KEY is set,
+    fall back to the OpenRouter provider so the user only needs one key.
+    """
+    # Ollama runs locally — no key needed
+    if provider_name == "ollama":
+        return ollama_provider, provider_name
+
+    env_var = _PROVIDER_ENV_VARS.get(provider_name)
+    if env_var and not os.environ.get(env_var):
+        # Provider key is missing — check if OpenRouter can be used instead
+        if provider_name != "openrouter" and os.environ.get("OPENROUTER_API_KEY"):
+            logger.warning(
+                "%s not set — falling back to OpenRouter for provider '%s'",
+                env_var, provider_name,
+            )
+            return openrouter_provider, provider_name
+        raise ValueError(
+            f"{env_var} environment variable is not set. "
+            f"Set it with: export {env_var}='your-key-here'\n"
+            f"Or set OPENROUTER_API_KEY to use OpenRouter as a universal provider."
+        )
+
+    return PROVIDERS[provider_name], provider_name
+
 
 async def run_agent(req) -> dict:
     """
@@ -61,7 +101,7 @@ async def run_agent(req) -> dict:
             f"Supported providers: {supported}"
         )
 
-    provider = PROVIDERS[req.provider]
+    provider, actual_provider = _resolve_provider(req.provider)
 
     # Build tool definitions for the requested tools (built-in + custom)
     tools = get_tool_definitions(req.tools)
@@ -77,7 +117,7 @@ async def run_agent(req) -> dict:
 
     logger.info(
         "Routing request: provider=%s model=%s tools=%s message_count=%d",
-        req.provider,
+        actual_provider,
         req.model,
         req.tools,
         len(messages),
@@ -117,7 +157,7 @@ async def run_agent_stream(req):
         supported = ", ".join(sorted(PROVIDERS.keys()))
         raise KeyError(f"Unknown provider: '{req.provider}'. Supported providers: {supported}")
 
-    provider = PROVIDERS[req.provider]
+    provider, actual_provider = _resolve_provider(req.provider)
 
     # Check if provider has streaming support
     call_stream_fn = getattr(provider, "call_stream", None)
@@ -135,7 +175,7 @@ async def run_agent_stream(req):
 
     logger.info(
         "Streaming request: provider=%s model=%s tools=%s message_count=%d",
-        req.provider, req.model, req.tools, len(messages),
+        actual_provider, req.model, req.tools, len(messages),
     )
 
     if has_streaming and call_stream_fn:
