@@ -3,26 +3,59 @@ package memory
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/2mcode/2mcode/internal/bridge"
 )
 
+// Default summarization models per provider — chosen for speed + cost.
+var summarizationModels = []struct {
+	EnvVar string
+	Provider string
+	Model    string
+}{
+	{"OPENROUTER_API_KEY", "openrouter", "qwen/qwen3-coder:free"},
+	{"ANTHROPIC_API_KEY", "anthropic", "claude-sonnet-4-6"},
+	{"OPENAI_API_KEY", "openai", "gpt-4o-mini"},
+	{"GOOGLE_API_KEY", "google", "gemini-1.5-flash"},
+	{"MISTRAL_API_KEY", "mistral", "mistral-small-latest"},
+	{"GROQ_API_KEY", "groq", "llama3-8b-8192"},
+	{"COHERE_API_KEY", "cohere", "command-r"},
+}
+
 // Summarizer creates memory entries from session transcripts by calling an LLM.
-// It uses the bridge to send a summarization request to OpenRouter's qwen model,
-// which has a massive 1M+ context window ideal for compressing long conversations.
+// Auto-detects which provider to use based on available API keys.
 type Summarizer struct {
-	bridge *bridge.Bridge
-	store  Store
+	bridge   *bridge.Bridge
+	store    Store
+	provider string
+	model    string
 }
 
 // NewSummarizer creates a Summarizer backed by the given bridge and store.
+// Auto-detects the best available provider for summarization.
+// If no provider key is found, summarization will be disabled (returns nil).
 func NewSummarizer(br *bridge.Bridge, store Store) *Summarizer {
-	return &Summarizer{
+	s := &Summarizer{
 		bridge: br,
 		store:  store,
 	}
+	s.detectProvider()
+	return s
+}
+
+// detectProvider finds the first available provider from the env.
+func (s *Summarizer) detectProvider() {
+	for _, p := range summarizationModels {
+		if os.Getenv(p.EnvVar) != "" {
+			s.provider = p.Provider
+			s.model = p.Model
+			return
+		}
+	}
+	// No provider key found — memory will be disabled
 }
 
 // Store returns the underlying Store used by this Summarizer.
@@ -30,13 +63,33 @@ func (s *Summarizer) Store() Store {
 	return s.store
 }
 
+// Enabled returns true if a provider was detected for summarization.
+func (s *Summarizer) Enabled() bool {
+	return s.provider != ""
+}
+
+// Provider returns the detected provider name.
+func (s *Summarizer) Provider() string {
+	return s.provider
+}
+
+// Model returns the detected model name.
+func (s *Summarizer) Model() string {
+	return s.model
+}
+
 // SummarizeSession sends the conversation transcript to the LLM, saves
 // the resulting summary as a memory entry, and returns the entry. Errors
 // are returned but the caller may safely ignore them (memory is best-effort).
+// Returns nil entry if no provider was detected.
 func (s *Summarizer) SummarizeSession(
 	ctx context.Context,
 	teamName, sessionID, task, transcript string,
 ) (*Entry, error) {
+	if !s.Enabled() {
+		return nil, fmt.Errorf("memory: no provider API key found — set any LLM provider env var")
+	}
+
 	systemPrompt := `You are a memory summarizer for 2M Code, an AI coding assistant.
 
 Your role is to read a conversation transcript and extract the most important
@@ -58,8 +111,8 @@ backticks, no extra text):
 }`
 
 	req := bridge.AgentRequest{
-		Provider:  "openrouter",
-		Model:     "qwen/qwen3-coder:free",
+		Provider:  s.provider,
+		Model:     s.model,
 		System:    systemPrompt,
 		Messages:  []bridge.MessagePayload{
 			{Role: "user", Content: transcript},

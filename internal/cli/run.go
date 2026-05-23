@@ -136,7 +136,9 @@ func runTask(cmd *cobra.Command, args []string) error {
 	if memDir, err := memoryDir(); err == nil {
 		if memStore, err := memory.NewFileStore(memDir); err == nil {
 			memSummarizer := memory.NewSummarizer(br, memStore)
-			orch.WithMemory(memSummarizer)
+			if memSummarizer.Enabled() {
+				orch.WithMemory(memSummarizer)
+			}
 		}
 	}
 

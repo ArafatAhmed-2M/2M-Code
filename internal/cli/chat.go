@@ -26,6 +26,15 @@ import (
 	"github.com/2mcode/2mcode/internal/team"
 )
 
+// chatState holds the runtime state for the chat REPL.
+type chatState struct {
+	orch      *orchestrator.Orchestrator
+	t         *team.Team
+	sessionID string
+	eventBus  *bus.Bus
+	renderer  *TerminalRenderer
+}
+
 var chatCmd = &cobra.Command{
 	Use:   "chat <team>",
 	Short: "Start an interactive REPL with an agent team",
@@ -111,7 +120,9 @@ func runChat(cmd *cobra.Command, args []string) error {
 	if memDir, err := memoryDir(); err == nil {
 		if memStore, err := memory.NewFileStore(memDir); err == nil {
 			memSummarizer := memory.NewSummarizer(br, memStore)
-			orch.WithMemory(memSummarizer)
+			if memSummarizer.Enabled() {
+				orch.WithMemory(memSummarizer)
+			}
 		}
 	}
 
@@ -120,54 +131,176 @@ func runChat(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("cannot create session: %w", err)
 	}
 
+	state := &chatState{
+		orch:      orch,
+		t:         t,
+		sessionID: sessionID,
+		eventBus:  eventBus,
+		renderer:  renderer,
+	}
+
 	// Interactive REPL
 	scanner := bufio.NewScanner(os.Stdin)
-	renderer.PrintInfo("Chat started. Type 'exit' or 'quit' to end.\n")
+	renderer.PrintInfo("Chat started. Type /help for commands.\n")
 
 	for {
-		// Print prompt
 		fmt.Print("you > ")
 
 		if !scanner.Scan() {
-			break // EOF or Ctrl+C
+			break
 		}
 
 		input := strings.TrimSpace(scanner.Text())
+		if input == "" {
+			continue
+		}
 
-		// Check for exit commands
+		// Handle slash commands
+		if strings.HasPrefix(input, "/") {
+			if state.handleCommand(input) {
+				return nil // exit signal
+			}
+			continue
+		}
+
+		// Handle exit aliases
 		switch strings.ToLower(input) {
-		case "exit", "quit", "/exit", "/quit":
+		case "exit", "quit":
 			renderer.PrintInfo("Session ended. Goodbye!")
 			return nil
-		case "":
-			continue // Skip empty input
-		case "/help":
-			printChatHelp(renderer)
-			continue
-		case "/info":
-			renderer.PrintTeamInfo(t)
-			continue
 		}
 
 		// Run the agent team on this message
 		ctx := context.Background()
 		if err := orch.RunChatTurn(ctx, t, sessionID, input); err != nil {
 			renderer.PrintError(fmt.Sprintf("Chat turn failed: %s", err))
-			// Don't exit on error — let the user try again
 		}
 
-		fmt.Println() // Blank line between turns
+		fmt.Println()
 	}
 
 	return nil
 }
 
+// handleCommand processes a slash command. Returns true if the REPL should exit.
+func (s *chatState) handleCommand(cmd string) bool {
+	parts := strings.Fields(strings.ToLower(cmd))
+	if len(parts) == 0 {
+		return false
+	}
+
+	switch parts[0] {
+	case "/help":
+		printChatHelp(s.renderer)
+
+	case "/info":
+		s.renderer.PrintTeamInfo(s.t)
+
+	case "/session":
+		s.showSessionInfo()
+
+	case "/clear":
+		fmt.Print("\033[2J\033[H") // ANSI clear screen
+
+	case "/models":
+		s.renderer.PrintInfo("Run '2m models' in your terminal to list available models.")
+
+	case "/export":
+		s.exportSession()
+
+	case "/compact":
+		s.compactSession()
+
+	case "/new", "/clear-session":
+		s.renderer.PrintInfo("Start a new session with: 2m chat " + s.t.Name)
+
+	case "/exit", "/quit":
+		s.renderer.PrintInfo("Session ended. Goodbye!")
+		return true
+	}
+
+	return false
+}
+
+// showSessionInfo prints the current session details.
+func (s *chatState) showSessionInfo() {
+	count, err := s.eventBus.MessageCount(s.sessionID)
+	if err != nil {
+		s.renderer.PrintError(fmt.Sprintf("Cannot get message count: %s", err))
+		return
+	}
+
+	s.renderer.PrintInfo(fmt.Sprintf("Team: %s", s.t.Name))
+	s.renderer.PrintInfo(fmt.Sprintf("Session: %s", s.sessionID[:8]))
+	s.renderer.PrintInfo(fmt.Sprintf("Messages: %d", count))
+	s.renderer.PrintInfo(fmt.Sprintf("Agents: %d", len(s.t.Agents)))
+	fmt.Println()
+}
+
+// exportSession writes the current session transcript to a markdown file.
+func (s *chatState) exportSession() {
+	messages, err := s.eventBus.GetAllMessages(s.sessionID)
+	if err != nil {
+		s.renderer.PrintError(fmt.Sprintf("Cannot read session: %s", err))
+		return
+	}
+
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf("# 2M Code Session: %s\n\n", s.t.Name))
+	b.WriteString(fmt.Sprintf("**Date:** %s\n\n", time.Now().Format("2006-01-02 15:04:05")))
+	b.WriteString("---\n\n")
+
+	for _, msg := range messages {
+		speaker := msg.AgentName
+		if speaker == "" {
+			speaker = msg.Role
+		}
+		b.WriteString(fmt.Sprintf("### %s\n\n", speaker))
+		b.WriteString(fmt.Sprintf("%s\n\n", msg.Content))
+	}
+
+	filename := fmt.Sprintf("2m-session-%s.md", time.Now().Format("20060102-150405"))
+	if err := os.WriteFile(filename, []byte(b.String()), 0644); err != nil {
+		s.renderer.PrintError(fmt.Sprintf("Cannot write export: %s", err))
+		return
+	}
+
+	s.renderer.PrintInfo(fmt.Sprintf("Exported to: %s (%d messages)", filename, len(messages)))
+}
+
+// compactSession triggers a memory summarization of the current session.
+func (s *chatState) compactSession() {
+	messages, err := s.eventBus.GetAllMessages(s.sessionID)
+	if err != nil {
+		s.renderer.PrintError(fmt.Sprintf("Cannot read session: %s", err))
+		return
+	}
+
+	var b strings.Builder
+	for _, msg := range messages {
+		speaker := msg.AgentName
+		if speaker == "" {
+			speaker = msg.Role
+		}
+		b.WriteString(fmt.Sprintf("[%s]: %s\n", speaker, msg.Content))
+	}
+
+	s.renderer.PrintInfo(fmt.Sprintf("Session has %d messages. Summarizing...", len(messages)))
+	ctx := context.Background()
+	s.orch.SaveMemory(ctx, s.t, s.sessionID, "Chat session", b.String())
+}
+
 // printChatHelp shows available REPL commands.
 func printChatHelp(renderer *TerminalRenderer) {
 	renderer.PrintInfo("Available commands:")
-	renderer.PrintInfo("  /help  — Show this help")
-	renderer.PrintInfo("  /info  — Show team configuration")
-	renderer.PrintInfo("  /exit  — End the session")
-	renderer.PrintInfo("  /quit  — End the session")
+	renderer.PrintInfo("  /help       — Show this help")
+	renderer.PrintInfo("  /info       — Show team configuration")
+	renderer.PrintInfo("  /session    — Show current session info (ID, message count)")
+	renderer.PrintInfo("  /export     — Export session transcript to markdown file")
+	renderer.PrintInfo("  /compact    — Summarize and save session to memory now")
+	renderer.PrintInfo("  /clear      — Clear the terminal screen")
+	renderer.PrintInfo("  /new        — Start a fresh session")
+	renderer.PrintInfo("  /exit, quit — End the session")
 	fmt.Println()
+	renderer.PrintInfo("Type any message to chat with your agent team.")
 }
