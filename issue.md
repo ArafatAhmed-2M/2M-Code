@@ -103,4 +103,16 @@
 
 **Fix:** The `ConnectionError` handler now uses `str(e)` from the exception as the response detail (preserving the real error like rate limit messages). It also detects rate-limit-related keywords ("rate", "quota", "credit") and returns HTTP 429 instead of 502, so the client can distinguish connection failures from rate limits.
 
+**Commit:** `6fef01c`
+
+---
+
+## 9. `2m` only works from the project directory — can't find agent_engine elsewhere
+
+**File(s):** `cmd/2m/main.go`
+
+**Problem:** Running `2m` from outside the project directory (e.g., `cd /some/other/dir && 2m chat fullstack`) fails with `cannot find agent_engine/server.py` because `findEngineScript()` only searched relative to the binary and relative to CWD. The install script installs `agent_engine/` to `~/.2mcode/agent_engine/`, but that location was never checked.
+
+**Fix:** Added `~/.2mcode/agent_engine/server.py` as the 2nd search path (after env var override) in `findEngineScript()`, and updated the error message to suggest reinstalling rather than vague advice.
+
 **Commit:** `(pending)`

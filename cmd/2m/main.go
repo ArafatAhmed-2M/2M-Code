@@ -40,8 +40,8 @@ func main() {
 	enginePath := findEngineScript()
 	if enginePath == "" {
 		fmt.Fprintf(os.Stderr, "Error: cannot find agent_engine/server.py\n")
-		fmt.Fprintf(os.Stderr, "Make sure the agent_engine directory is in the same location as the 2m binary,\n")
-		fmt.Fprintf(os.Stderr, "or set the 2M_ENGINE_PATH environment variable.\n")
+		fmt.Fprintf(os.Stderr, "Reinstall with: curl -sSL https://raw.githubusercontent.com/ArafatAhmed-2M/2M-Code/main/scripts/install.sh | bash\n")
+		fmt.Fprintf(os.Stderr, "Or set the 2M_ENGINE_PATH environment variable to point to server.py.\n")
 		os.Exit(1)
 	}
 
@@ -112,8 +112,9 @@ func main() {
 // findEngineScript searches for the agent_engine/server.py script.
 // Search order:
 //  1. 2M_ENGINE_PATH environment variable
-//  2. Relative to the executable
-//  3. Relative to the current working directory
+//  2. ~/.2mcode/agent_engine/server.py (installed location)
+//  3. Relative to the executable
+//  4. Relative to the current working directory
 func findEngineScript() string {
 	// 1. Environment variable override
 	if envPath := os.Getenv("2M_ENGINE_PATH"); envPath != "" {
@@ -122,7 +123,15 @@ func findEngineScript() string {
 		}
 	}
 
-	// 2. Relative to executable
+	// 2. Installed location: ~/.2mcode/agent_engine/server.py
+	if homeDir, err := os.UserHomeDir(); err == nil {
+		candidate := filepath.Join(homeDir, ".2mcode", "agent_engine", "server.py")
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+	}
+
+	// 3. Relative to executable
 	execPath, err := os.Executable()
 	if err == nil {
 		execDir := filepath.Dir(execPath)
@@ -137,7 +146,7 @@ func findEngineScript() string {
 		}
 	}
 
-	// 3. Relative to current working directory
+	// 4. Relative to current working directory
 	cwd, err := os.Getwd()
 	if err == nil {
 		candidate := filepath.Join(cwd, "agent_engine", "server.py")
