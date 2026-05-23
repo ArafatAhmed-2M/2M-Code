@@ -2,6 +2,7 @@
 **AI Agent Instruction File for Google Antigravity**  
 **Project:** 2M Code (Multi-Mind Coding Platform)  
 **Version:** 1.0.0  
+**Repository:** https://github.com/ArafatAhmed-2M/2M-Code.git  
 
 ---
 

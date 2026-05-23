@@ -92,3 +92,15 @@
 
 **Commit:** `(pending — next push)`
 **Status:** ✅ Fixed
+
+---
+
+## 8. 502 Bad Gateway — rate-limit error detail swallowed by generic message
+
+**File(s):** `agent_engine/server.py`
+
+**Problem:** When OpenRouter returns 429 (rate limited), the provider raises `ConnectionError("OpenRouter API rate limit exceeded...")`. The `server.py` error handler catches it, logs the real error message, but then replaces it with a generic `"Failed to connect to ... API. Check your API key and network."` detail and always returns HTTP 502. The user sees a misleading error about API keys when the real problem is rate limiting on free-tier models.
+
+**Fix:** The `ConnectionError` handler now uses `str(e)` from the exception as the response detail (preserving the real error like rate limit messages). It also detects rate-limit-related keywords ("rate", "quota", "credit") and returns HTTP 429 instead of 502, so the client can distinguish connection failures from rate limits.
+
+**Commit:** `(pending)`

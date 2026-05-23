@@ -106,10 +106,12 @@ async def call(req: AgentRequest):
         raise HTTPException(status_code=422, detail=str(e)) from e
     except ConnectionError as e:
         logger.error("Provider connection failed: %s", str(e))
-        raise HTTPException(
-            status_code=502,
-            detail=f"Failed to connect to {req.provider} API. Check your API key and network.",
-        ) from e
+        status_code = 502
+        detail = str(e)
+        # Rate limit errors (raised as ConnectionError by providers) should be 429
+        if "rate" in detail.lower() or "quota" in detail.lower() or "credit" in detail.lower():
+            status_code = 429
+        raise HTTPException(status_code=status_code, detail=detail) from e
     except TimeoutError as e:
         logger.error("Provider request timed out: %s", str(e))
         raise HTTPException(
