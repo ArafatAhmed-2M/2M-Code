@@ -153,17 +153,29 @@ func EnsureConfigDir() error {
 //   - google     → GOOGLE_API_KEY
 //   - openai     → OPENAI_API_KEY
 //   - mistral    → MISTRAL_API_KEY
+//   - cohere     → COHERE_API_KEY
+//   - groq       → GROQ_API_KEY
+//   - openrouter → OPENROUTER_API_KEY
+//   - ollama     → (none — local, no API key needed)
 func GetProviderAPIKey(provider string) (string, error) {
+	// Ollama is local — no API key needed
+	if provider == "ollama" {
+		return "", nil
+	}
+
 	envVars := map[string]string{
-		"anthropic": "ANTHROPIC_API_KEY",
-		"google":    "GOOGLE_API_KEY",
-		"openai":    "OPENAI_API_KEY",
-		"mistral":   "MISTRAL_API_KEY",
+		"anthropic":  "ANTHROPIC_API_KEY",
+		"google":     "GOOGLE_API_KEY",
+		"openai":     "OPENAI_API_KEY",
+		"mistral":    "MISTRAL_API_KEY",
+		"cohere":     "COHERE_API_KEY",
+		"groq":       "GROQ_API_KEY",
+		"openrouter": "OPENROUTER_API_KEY",
 	}
 
 	envVar, ok := envVars[provider]
 	if !ok {
-		return "", fmt.Errorf("unknown provider '%s' — supported: anthropic, google, openai, mistral", provider)
+		return "", fmt.Errorf("unknown provider '%s' — supported: anthropic, google, openai, mistral, cohere, groq, ollama, openrouter", provider)
 	}
 
 	key := os.Getenv(envVar)

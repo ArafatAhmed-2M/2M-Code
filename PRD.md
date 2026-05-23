@@ -12,7 +12,7 @@
 
 The "2M" stands for **Multi-Mind**: the belief that the best software emerges from multiple perspectives in dialogue, not a single oracle.
 
-Unlike Claude Code, Gemini CLI, or OpenAI Codex CLI — which each expose a single model through a single provider — 2M Code lets you mix Anthropic, Google, OpenAI, Mistral, and any compatible provider into one coherent team. A Planner powered by Gemini can hand off to a Coder on Claude, reviewed by a QA agent on GPT-4o. Every agent sees the team's shared conversation, just like a real Slack channel.
+Unlike Claude Code, Gemini CLI, or OpenAI Codex CLI — which each expose a single model through a single provider — 2M Code lets you mix Anthropic, Google, OpenAI, Mistral, Cohere, Groq, Ollama, OpenRouter, and any compatible provider into one coherent team. A Planner powered by Gemini can hand off to a Coder on Claude, reviewed by a QA agent on GPT-4o. Every agent sees the team's shared conversation, just like a real Slack channel.
 
 **Target users:** Solo developers and engineering teams who want leverage beyond a single AI model.
 
@@ -78,7 +78,7 @@ Reza leads a 6-person startup team. He wants to standardize AI tooling across th
 An agent is a named, role-bearing LLM instance. Each agent has:
 - **Name** — e.g. "Aria", "Dev", "Quinn"
 - **Role** — a short description used in rendering, e.g. "Tech Lead"
-- **Provider** — anthropic | google | openai | mistral
+    - **Provider** — anthropic | google | openai | mistral | cohere | groq | ollama | openrouter
 - **Model** — e.g. "claude-opus-4-5", "gemini-1.5-pro", "gpt-4o"
 - **System prompt** — the agent's identity, responsibilities, and communication style
 - **Max context** — how many recent messages from the team channel it reads
@@ -142,7 +142,7 @@ version: "1.0"
 agents:
   - name: string                # display name
     role: string                # role label (e.g. "Tech Lead")
-    provider: anthropic|google|openai|mistral
+    provider: anthropic|google|openai|mistral|cohere|groq|ollama|openrouter
     model: string               # provider-specific model ID
     system_prompt: string       # full role prompt
     max_context: int            # messages from team channel (default: 20)
@@ -164,7 +164,11 @@ workflow:
 | Anthropic | `ANTHROPIC_API_KEY` | claude-opus-4-5, claude-sonnet-4-6, claude-haiku-4-5 |
 | Google | `GOOGLE_API_KEY` | gemini-1.5-pro, gemini-1.5-flash, gemini-2.0-flash |
 | OpenAI | `OPENAI_API_KEY` | gpt-4o, gpt-4o-mini, o1-preview |
-| Mistral | `MISTRAL_API_KEY` | mistral-large, mistral-medium |
+| Mistral | `MISTRAL_API_KEY` | mistral-large, codestral |
+| Cohere | `COHERE_API_KEY` | command-r-plus, command-r |
+| Groq | `GROQ_API_KEY` | llama3-70b-8192, mixtral-8x7b-32768 |
+| OpenRouter | `OPENROUTER_API_KEY` | 200+ models via unified API |
+| Ollama | *None (local)* | llama3, mistral, codellama |
 
 ### 7.4 Agent Tools
 

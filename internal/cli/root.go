@@ -34,7 +34,7 @@ Quick start:
   2m run <team> "<task>"   Run a one-shot task with a team
   2m chat <team>           Start an interactive REPL with a team
 
-Learn more: https://github.com/2mcode/2mcode`,
+Learn more: https://github.com/ArafatAhmed-2M/2M-Code`,
 	Version: version,
 }
 

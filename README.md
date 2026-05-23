@@ -21,14 +21,14 @@ With 2M Code, you define a **team** of AI agents in a simple YAML file. Each age
 ### Quick Install (macOS/Linux)
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/2mcode/2mcode/main/scripts/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/ArafatAhmed-2M/2M-Code/main/scripts/install.sh | bash
 ```
 
 ### Manual Install
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/2mcode/2mcode.git
+git clone https://github.com/ArafatAhmed-2M/2M-Code.git 2mcode
 cd 2mcode
 
 # 2. Install Python dependencies
@@ -241,7 +241,7 @@ We welcome contributions! Here's how to get started:
 ### Development Setup
 
 ```bash
-git clone https://github.com/2mcode/2mcode.git
+git clone https://github.com/ArafatAhmed-2M/2M-Code.git 2mcode
 cd 2mcode
 pip install -r requirements.txt
 make build

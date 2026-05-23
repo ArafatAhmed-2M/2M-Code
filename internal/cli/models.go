@@ -100,7 +100,7 @@ func runModels(cmd *cobra.Command, args []string) error {
 
 	if totalModels == 0 {
 		renderer.PrintInfo("No models found. Make sure your API keys are configured correctly.")
-		renderer.PrintInfo("Try: export ANTHROPIC_API_KEY='your-key'")
+		renderer.PrintInfo("Set keys: ANTHROPIC_API_KEY, GOOGLE_API_KEY, OPENAI_API_KEY, MISTRAL_API_KEY, COHERE_API_KEY, GROQ_API_KEY, OPENROUTER_API_KEY")
 	} else {
 		renderer.PrintInfo(fmt.Sprintf("Found %d models across %d providers.", totalModels, len(providers)))
 	}

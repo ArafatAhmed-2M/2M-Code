@@ -3,7 +3,7 @@
 # Installs the Go binary and Python agent engine dependencies.
 #
 # Usage:
-#   curl -sSL https://raw.githubusercontent.com/2mcode/2mcode/main/scripts/install.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/ArafatAhmed-2M/2M-Code/main/scripts/install.sh | bash
 #
 # Requirements:
 #   - Go 1.22+ (for building from source)
@@ -13,7 +13,7 @@
 set -e
 
 # Configuration
-REPO="https://github.com/2mcode/2mcode"
+REPO="https://github.com/ArafatAhmed-2M/2M-Code.git"
 INSTALL_DIR="/usr/local/bin"
 CONFIG_DIR="$HOME/.2mcode"
 
@@ -118,7 +118,7 @@ setup_config() {
     if [ ! -f "$CONFIG_DIR/config.yaml" ]; then
         cat > "$CONFIG_DIR/config.yaml" << 'EOF'
 # 2M Code Configuration
-# See: https://github.com/2mcode/2mcode
+# See: https://github.com/ArafatAhmed-2M/2M-Code
 
 # Default team to use when none is specified
 # default_team: fullstack
@@ -145,10 +145,15 @@ print_next_steps() {
     echo ""
     echo "Next steps:"
     echo ""
-    echo "  1. Set up at least one API key:"
+    echo "  1. Set up API keys (at least one provider):"
     echo -e "     ${CYAN}export ANTHROPIC_API_KEY='your-key'${NC}"
     echo -e "     ${CYAN}export GOOGLE_API_KEY='your-key'${NC}"
     echo -e "     ${CYAN}export OPENAI_API_KEY='your-key'${NC}"
+    echo -e "     ${CYAN}export MISTRAL_API_KEY='your-key'${NC}"
+    echo -e "     ${CYAN}export COHERE_API_KEY='your-key'${NC}"
+    echo -e "     ${CYAN}export GROQ_API_KEY='your-key'${NC}"
+    echo -e "     ${CYAN}export OPENROUTER_API_KEY='your-key'${NC}"
+    echo "     (Ollama runs locally — no API key needed)"
     echo ""
     echo "  2. Create your first team:"
     echo -e "     ${CYAN}2m new-team${NC}"
@@ -159,7 +164,7 @@ print_next_steps() {
     echo "  4. Start chatting:"
     echo -e "     ${CYAN}2m chat fullstack${NC}"
     echo ""
-    echo "Documentation: https://github.com/2mcode/2mcode"
+    echo "Documentation: https://github.com/ArafatAhmed-2M/2M-Code"
     echo ""
 }
 

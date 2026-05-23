@@ -18,7 +18,7 @@ import (
 
 // AgentRequest is the JSON body sent to the Python agent engine's /call endpoint.
 type AgentRequest struct {
-	Provider  string            `json:"provider"`   // anthropic|google|openai|mistral
+	Provider  string            `json:"provider"`   // anthropic|google|openai|mistral|cohere|groq|ollama|openrouter
 	Model     string            `json:"model"`      // Provider-specific model ID
 	System    string            `json:"system"`     // System prompt
 	Messages  []MessagePayload  `json:"messages"`   // Conversation history

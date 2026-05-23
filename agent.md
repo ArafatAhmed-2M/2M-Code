@@ -80,7 +80,11 @@ Build the project with exactly this structure:
 │   │   ├── anthropic_provider.py    ← Anthropic SDK adapter
 │   │   ├── google_provider.py       ← Google Gemini SDK adapter
 │   │   ├── openai_provider.py       ← OpenAI SDK adapter
-│   │   └── mistral_provider.py      ← Mistral SDK adapter
+│   │   ├── mistral_provider.py      ← Mistral SDK adapter
+│   │   ├── cohere_provider.py       ← Cohere SDK adapter
+│   │   ├── groq_provider.py         ← Groq SDK adapter
+│   │   ├── ollama_provider.py       ← Ollama local adapter
+│   │   └── openrouter_provider.py   ← OpenRouter unified adapter
 │   └── tools/
 │       ├── __init__.py
 │       ├── bash_tool.py             ← Bash execution tool definition
@@ -310,7 +314,7 @@ async def call(req: AgentRequest):
 Routes requests to the correct provider. Handles tool definitions.
 
 ```python
-from providers import anthropic_provider, google_provider, openai_provider, mistral_provider
+from providers import anthropic_provider, google_provider, openai_provider, mistral_provider, cohere_provider, groq_provider, ollama_provider, openrouter_provider
 from tools import TOOL_DEFINITIONS, execute_tool
 
 PROVIDERS = {
@@ -318,6 +322,10 @@ PROVIDERS = {
     "google": google_provider,
     "openai": openai_provider,
     "mistral": mistral_provider,
+    "cohere": cohere_provider,
+    "groq": groq_provider,
+    "ollama": ollama_provider,
+    "openrouter": openrouter_provider,
 }
 
 async def run_agent(req):
@@ -484,7 +492,7 @@ Write a full README with:
 # Installs Go binary and Python agent engine
 
 set -e
-REPO="https://github.com/2mcode/2mcode"
+REPO="https://github.com/ArafatAhmed-2M/2M-Code"
 INSTALL_DIR="/usr/local/bin"
 
 echo "Installing 2M Code..."

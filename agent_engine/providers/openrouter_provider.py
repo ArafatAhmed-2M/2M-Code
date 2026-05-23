@@ -38,7 +38,7 @@ def _get_client() -> openai.OpenAI:
 
     # OpenRouter recommends sending these headers for rankings
     headers = {
-        "HTTP-Referer": "https://github.com/2mcode/2mcode",
+        "HTTP-Referer": "https://github.com/ArafatAhmed-2M/2M-Code",
         "X-Title": "2M Code",
     }
 
