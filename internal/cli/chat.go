@@ -40,6 +40,10 @@ Example:
 	RunE: runChat,
 }
 
+func init() {
+	rootCmd.AddCommand(chatCmd)
+}
+
 // runChat is the handler for `2m chat <team>`.
 // The team name may contain spaces (e.g. '2m code test team') so all
 // positional args are joined before lookup.
