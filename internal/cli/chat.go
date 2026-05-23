@@ -72,13 +72,9 @@ func runChat(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Validate API keys
-	missingKeys := team.ValidateProviderKeys(t)
-	if len(missingKeys) > 0 {
-		for _, provider := range missingKeys {
-			renderer.PrintError(fmt.Sprintf("Missing API key for provider '%s'", provider))
-		}
-		return fmt.Errorf("set missing API keys before chatting")
+	// Check API keys — warn but don't block
+	for _, provider := range team.ValidateProviderKeys(t) {
+		renderer.PrintInfo(fmt.Sprintf("Note: %s API key not set — will try other providers if available", provider))
 	}
 
 	// Show team info
@@ -119,10 +115,7 @@ func runChat(cmd *cobra.Command, args []string) error {
 	// Attach persistent memory if available
 	if memDir, err := memoryDir(); err == nil {
 		if memStore, err := memory.NewFileStore(memDir); err == nil {
-			memSummarizer := memory.NewSummarizer(br, memStore)
-			if memSummarizer.Enabled() {
-				orch.WithMemory(memSummarizer)
-			}
+			orch.WithMemory(memory.NewSummarizer(br, memStore))
 		}
 	}
 

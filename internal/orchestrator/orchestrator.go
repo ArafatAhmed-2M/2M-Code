@@ -137,7 +137,7 @@ func (o *Orchestrator) RunTask(ctx context.Context, t *team.Team, sessionID, tas
 	o.renderer.PrintSummary(turnCount, totalInputTokens, totalOutputTokens, costUSD, duration)
 
 	// Save memory for this session (best-effort)
-	if o.memorySummarizer != nil && o.memorySummarizer.Enabled() && turnCount > 0 {
+	if o.memorySummarizer != nil && turnCount > 0 {
 		o.saveSessionMemory(ctx, t, sessionID, task)
 	}
 
@@ -170,7 +170,7 @@ func (o *Orchestrator) RunChatTurn(ctx context.Context, t *team.Team, sessionID,
 	}
 
 	// Save memory after each chat turn (best-effort)
-	if o.memorySummarizer != nil && o.memorySummarizer.Enabled() {
+	if o.memorySummarizer != nil {
 		o.saveSessionMemory(ctx, t, sessionID, userMessage)
 	}
 
@@ -200,7 +200,7 @@ func (o *Orchestrator) runAgentTurn(
 
 	// Inject memory context into system prompt if available
 	systemPrompt := agent.SystemPrompt
-	if o.memorySummarizer != nil && o.memorySummarizer.Enabled() {
+	if o.memorySummarizer != nil {
 		if ctx, err := o.memorySummarizer.BuildContext(t.Name, 5); err == nil && ctx != "" {
 			systemPrompt = systemPrompt + "\n\n" + ctx
 		}
@@ -344,10 +344,14 @@ func (o *Orchestrator) buildCustomToolDefs(t *team.Team) []bridge.CustomToolDef 
 // SaveMemory saves a session transcript directly to memory.
 // Used by the chat REPL's /compact command. Best-effort.
 func (o *Orchestrator) SaveMemory(ctx context.Context, t *team.Team, sessionID, task, transcript string) {
-	if o.memorySummarizer == nil || !o.memorySummarizer.Enabled() {
+	if o.memorySummarizer == nil {
 		return
 	}
-	entry, err := o.memorySummarizer.SummarizeSession(ctx, t.Name, sessionID, task, transcript)
+	provider, model := o.pickMemoryProvider(t)
+	if provider == "" {
+		return
+	}
+	entry, err := o.memorySummarizer.SummarizeSession(ctx, t.Name, sessionID, task, transcript, provider, model)
 	if err != nil {
 		o.renderer.PrintInfo(fmt.Sprintf("Memory: summarization skipped: %s", err))
 		return
@@ -369,13 +373,26 @@ func (o *Orchestrator) saveSessionMemory(ctx context.Context, t *team.Team, sess
 		return
 	}
 
-	entry, err := o.memorySummarizer.SummarizeSession(ctx, t.Name, sessionID, task, transcript)
+	provider, model := o.pickMemoryProvider(t)
+	if provider == "" {
+		return
+	}
+	entry, err := o.memorySummarizer.SummarizeSession(ctx, t.Name, sessionID, task, transcript, provider, model)
 	if err != nil {
 		o.renderer.PrintInfo(fmt.Sprintf("Memory: summarization skipped: %s", err))
 		return
 	}
 
 	o.renderer.PrintInfo(fmt.Sprintf("Memory: saved summary for this session (%.0f tokens)", float64(len(entry.Summary))/4))
+}
+
+// pickMemoryProvider returns the provider+model to use for memory summarization.
+// Uses the first agent in the team; if none exists, returns empty strings.
+func (o *Orchestrator) pickMemoryProvider(t *team.Team) (string, string) {
+	if len(t.Agents) == 0 {
+		return "", ""
+	}
+	return t.Agents[0].Provider, t.Agents[0].Model
 }
 
 // formatTranscript converts event bus messages into a plain-text transcript
