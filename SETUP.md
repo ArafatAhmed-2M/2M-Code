@@ -97,15 +97,18 @@ Set whichever you have:
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."   # Claude models
 export OPENAI_API_KEY="sk-proj-..."     # GPT models
+export OPENAI_COMPATIBLE_API_KEY="..."  # DeepSeek, Together, xAI, etc.
 export GOOGLE_API_KEY="AIza..."         # Gemini models
 export MISTRAL_API_KEY="..."            # Mistral models
 export GROQ_API_KEY="gsk_..."           # Groq (fast, free tier)
 export COHERE_API_KEY="..."             # Command models
+# OpenAI-Compatible also needs: export OPENAI_COMPATIBLE_BASE_URL="https://api.deepseek.com"
 ```
 **Windows (PowerShell):**
 ```powershell
 $env:ANTHROPIC_API_KEY = "sk-ant-..."
 $env:OPENAI_API_KEY = "sk-proj-..."
+$env:OPENAI_COMPATIBLE_API_KEY = "..."
 $env:GOOGLE_API_KEY = "AIza..."
 $env:MISTRAL_API_KEY = "..."
 $env:GROQ_API_KEY = "gsk_..."
@@ -115,6 +118,7 @@ $env:COHERE_API_KEY = "..."
 ```cmd
 set ANTHROPIC_API_KEY=sk-ant-...
 set OPENAI_API_KEY=sk-proj-...
+set OPENAI_COMPATIBLE_API_KEY=...
 set GOOGLE_API_KEY=AIza...
 set MISTRAL_API_KEY=...
 set GROQ_API_KEY=gsk_...

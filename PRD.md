@@ -12,7 +12,7 @@
 
 The "2M" stands for **Multi-Mind**: the belief that the best software emerges from multiple perspectives in dialogue, not a single oracle.
 
-Unlike Claude Code, Gemini CLI, or OpenAI Codex CLI — which each expose a single model through a single provider — 2M Code lets you mix Anthropic, Google, OpenAI, Mistral, Cohere, Groq, Ollama, OpenRouter, and any compatible provider into one coherent team. A Planner powered by Gemini can hand off to a Coder on Claude, reviewed by a QA agent on GPT-4o. Every agent sees the team's shared conversation, just like a real Slack channel.
+Unlike Claude Code, Gemini CLI, or OpenAI Codex CLI — which each expose a single model through a single provider — 2M Code lets you mix Anthropic, Google, OpenAI, OpenAI-Compatible (DeepSeek, Together, xAI, etc.), Mistral, Cohere, Groq, Ollama, OpenRouter, and any compatible provider into one coherent team. A Planner powered by Gemini can hand off to a Coder on Claude, reviewed by a QA agent on GPT-4o. Every agent sees the team's shared conversation, just like a real Slack channel.
 
 **Target users:** Solo developers and engineering teams who want leverage beyond a single AI model.
 
@@ -40,7 +40,7 @@ A configurable team of agents — each specialized, each from the best model for
 ### Goals (v1) — Foundation
 - Ship a working CLI tool installable as a single binary
 - Support agent teams defined in YAML (name, role, provider, model, system prompt)
-- Support providers: Anthropic Claude, Google Gemini, OpenAI GPT, Mistral, Cohere, Groq, Ollama, OpenRouter
+- Support providers: Anthropic Claude, Google Gemini, OpenAI GPT, OpenAI-Compatible (DeepSeek, Together, xAI, etc.), Mistral, Cohere, Groq, Ollama, OpenRouter
 - Implement a shared event bus so agents read each other's messages
 - Implement turn-based orchestration (leader-first, then round-robin, then reviewer)
 - Support file reading/writing and bash execution as agent tools
@@ -83,7 +83,7 @@ Reza leads a 6-person startup team. He wants to standardize AI tooling across th
 An agent is a named, role-bearing LLM instance. Each agent has:
 - **Name** — e.g. "Aria", "Dev", "Quinn"
 - **Role** — a short description used in rendering, e.g. "Tech Lead"
-    - **Provider** — anthropic | google | openai | mistral | cohere | groq | ollama | openrouter
+    - **Provider** — anthropic | google | openai | openai_compatible | mistral | cohere | groq | ollama | openrouter
 - **Model** — e.g. "claude-opus-4-5", "gemini-1.5-pro", "gpt-4o"
 - **System prompt** — the agent's identity, responsibilities, and communication style
 - **Max context** — how many recent messages from the team channel it reads
@@ -267,6 +267,7 @@ Agent Engine (Python / FastAPI — localhost:8765)
   ├── Provider: Anthropic
   ├── Provider: Google Gemini
   ├── Provider: OpenAI
+  ├── Provider: OpenAI-Compatible (DeepSeek, Together, xAI, etc.)
   ├── Provider: Mistral
   ├── Provider: Cohere
   ├── Provider: Groq

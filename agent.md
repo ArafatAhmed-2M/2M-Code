@@ -18,7 +18,7 @@ You do not ask unnecessary questions. You read the specs, make sensible decision
 
 2M Code is a CLI tool (like Claude Code or Gemini CLI) with one killer differentiator: **agent teams**. Instead of one AI model, users configure a *team* of AI agents — each with a name, role, provider, model, and system prompt — that collaborate on coding tasks through a shared conversation channel.
 
-**V2 adds** persistent memory (agents save context after every prompt), streaming token output, cost tracking with budgets, custom tool definitions, and automatic OpenRouter fallback when provider-specific API keys are missing.
+**V2 adds** persistent memory (agents save context after every prompt), streaming token output, cost tracking with budgets, custom tool definitions, automatic OpenRouter fallback when provider-specific API keys are missing, and a generic OpenAI-Compatible provider adapter that works with DeepSeek, Together AI, xAI Grok, Perplexity, Fireworks, GitHub Models, and any other OpenAI-compatible API.
 
 ---
 
@@ -226,6 +226,7 @@ The project is complete when:
 6. `README.md` is complete and accurate
 7. A developer with only `OPENROUTER_API_KEY` set can run any team
 8. Memory context persists across `2m run` sessions and `2m chat` turns
+9. All 9 providers work: anthropic, google, openai, openai_compatible, mistral, cohere, groq, ollama, openrouter
 
 ---
 

@@ -64,7 +64,7 @@
 
 **Fix:** Added `chmod +x` after `cp` in both the direct and `sudo` paths.
 
-**Commit:** `(pending — next push)`
+**Commit:** `(pre-existing)`
 **Status:** ✅ Fixed
 
 ---
@@ -77,7 +77,7 @@
 
 **Fix:** Added `killPort8765()` function in `main.go` that detects if port 8765 is in use, kills the owning process (`lsof`, `fuser`, or `taskkill` depending on OS), and waits for the port to be released before starting the new engine.
 
-**Commit:** `(pending — next push)`
+**Commit:** `(pre-existing)`
 **Status:** ✅ Fixed
 
 ---
@@ -90,7 +90,7 @@
 
 **Fix:** Added background command detection — if the command ends with `&`, `Popen` is used with `start_new_session=True` and returns immediately with the PID. The tool description was also updated to document this behavior.
 
-**Commit:** `(pending — next push)`
+**Commit:** `(pre-existing)`
 **Status:** ✅ Fixed
 
 ---
@@ -127,4 +127,100 @@
 
 **Fix:** Added `~/.2mcode/config/teams/<name>.yaml` to both `getSearchPaths()` and `ListTeams()` search directories (right after `~/.2mcode/teams/`). Also updated the not-found error message to list all 4 search locations.
 
-**Commit:** `(pending)`
+**Commit:** `e72b8c2`
+
+---
+
+## 11. Circular import in providers/__init__.py
+
+**File(s):** `agent_engine/providers/__init__.py`
+
+**Problem:** `from providers import ...` inside the `providers` package itself causes `ImportError` on startup (circular import).
+
+**Fix:** Changed to `from . import ...` (relative import).
+
+**Commit:** `e72b8c2`
+
+---
+
+## 12. Duplicate import in anthropic_provider.py
+
+**File(s):** `agent_engine/providers/anthropic_provider.py`
+
+**Problem:** `import anthropic` called twice in `_get_client()` — first on line 26 (unused), then on line 34 (actual).
+
+**Fix:** Removed the first unused import.
+
+**Commit:** `e72b8c2`
+
+---
+
+## 13. Cost calculation uses wrong model for token pricing
+
+**File(s):** `internal/orchestrator/orchestrator.go`, `internal/orchestrator/cost.go`
+
+**Problem:** `RunTask` called `EstimateCost(t.Agents[0].Model, ...)` using the first agent's model for ALL agents' total tokens. With different models having different pricing (e.g., Claude Opus is 60× more expensive than Haiku), this gave wildly wrong cost estimates for mixed-provider teams. Also `cost.go` had an unused loop variable `i` suppressed with `_ = i`.
+
+**Fix:** Added per-agent token tracking in `RunTask`, stored in a `map[agentName]struct{Input, Output}`, then calls `TotalCost()` which iterates per-agent using its own model pricing. Removed the `_ = i` hack by using `for _, agent := range`.
+
+**Commit:** `e72b8c2`
+
+---
+
+## 14. Custom tool InputSchema default lost on range-copy
+
+**File(s):** `internal/team/team.go`
+
+**Problem:** The `Validate()` method used `for _, ct := range t.CustomTools` which creates a copy — so `ct.InputSchema = {...}` default assignment was lost immediately.
+
+**Fix:** Changed to `for i := range t.CustomTools` with `ct := &t.CustomTools[i]` (pointer to actual element).
+
+**Commit:** `e72b8c2`
+
+---
+
+## 15. Team/task name swap on not-found fallback in `2m run`
+
+**File(s):** `internal/cli/run.go`
+
+**Problem:** When a team wasn't found, the fallback set `teamName = args[len-1]` (last arg = task) and `task = args[:len-1]` (everything else). This swapped them, producing confusing error messages like `team 'Build a REST API' not found`.
+
+**Fix:** Changed fallback to `teamName = args[0]`, `task = strings.Join(args[1:], " ")`.
+
+**Commit:** `e72b8c2`
+
+---
+
+## 16. `top_p` used as context_length fallback in OpenRouter provider
+
+**File(s):** `agent_engine/providers/openrouter_provider.py`
+
+**Problem:** The `list_models()` fallback used `getattr(m, "top_p", 0)` as the default for `context_length` — `top_p` is a sampling parameter (0-1), unrelated to context length. Always returned 0 or 1 instead of actual context size.
+
+**Fix:** Changed to `getattr(m, "context_length", 0)` (just 0 as the final fallback).
+
+**Commit:** `e72b8c2`
+
+---
+
+## 17. Custom tool `{param}` placeholders not substituted in command
+
+**File(s):** `internal/orchestrator/tools.go`
+
+**Problem:** The `executeCustomTool()` function passed `ct.Command` directly to `exec.Command` without replacing `{param}` placeholders with actual LLM-provided values. A command like `npm run lint -- {paths}` would literally run with `{paths}` unsubstituted.
+
+**Fix:** Added `strings.ReplaceAll` substitution loop before execution that replaces each `{key}` with the corresponding input value.
+
+**Commit:** `e72b8c2`
+
+---
+
+## 18. Added generic OpenAI-Compatible provider
+
+**File(s):** `agent_engine/providers/openai_compatible_provider.py` (new), `agent_engine/providers/__init__.py`, `agent_engine/agent.py`, `internal/team/team.go`, `internal/team/config.go`, `README.md`, `PRD.md`, `SETUP.md`, `agent.md`
+
+**Problem:** Users needed native provider support for DeepSeek, Together AI, xAI Grok, Perplexity, Fireworks, and other OpenAI-compatible APIs without going through OpenRouter.
+
+**Fix:** Added a new `openai_compatible` provider adapter that reads `OPENAI_COMPATIBLE_API_KEY` and `OPENAI_COMPATIBLE_BASE_URL` (default: `https://api.openai.com/v1`). Supports streaming, tool calling, and model listing via the generic OpenAI SDK. Registered in Go validation, Python router, env var mappings, and all documentation.
+
+**Commit:** `f0f3a1c`
