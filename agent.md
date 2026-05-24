@@ -33,7 +33,7 @@ You do not ask unnecessary questions. You read the specs, make sensible decision
 | State / event bus | SQLite via `github.com/mattn/go-sqlite3` | Zero dependency, embedded |
 | Config | YAML via `gopkg.in/yaml.v3` | Human-readable team definitions |
 | Terminal rendering | `github.com/charmbracelet/lipgloss` | Beautiful CLI output |
-| LLM providers | `anthropic`, `openai`, `google-genai`, `mistralai`, `cohere`, `groq` Python SDKs + `httpx` for Ollama | Native SDKs for all supported providers |
+| LLM providers | `anthropic`, `openai`, `google-genai`, `mistralai`, `cohere`, `groq` Python SDKs + `httpx` for Ollama + generic `openai` SDK for OpenAI-compatible | Native SDKs for all supported providers + universal adapter |
 
 ---
 
@@ -76,6 +76,7 @@ You do not ask unnecessary questions. You read the specs, make sensible decision
 │   │   ├── anthropic_provider.py    ← Anthropic SDK adapter (+ streaming)
 │   │   ├── google_provider.py       ← Google Gemini SDK adapter
 │   │   ├── openai_provider.py       ← OpenAI SDK adapter (+ streaming)
+│   │   ├── openai_compatible_provider.py ← Generic OpenAI-compatible adapter
 │   │   ├── mistral_provider.py      ← Mistral SDK adapter
 │   │   ├── cohere_provider.py       ← Cohere SDK adapter
 │   │   ├── groq_provider.py         ← Groq SDK adapter

@@ -187,10 +187,11 @@ Teams can be stored in:
 ## Supported Providers
 
 | Provider | Available Models (Examples) | Required Env Var | Notes |
-|---|---|---|---|
+|---|---|---|---|---|
 | **Anthropic** | `claude-3.5-sonnet`, `claude-3-opus` | `ANTHROPIC_API_KEY` | Best for complex reasoning and lead roles. |
 | **Google** | `gemini-1.5-pro`, `gemini-2.0-flash` | `GOOGLE_API_KEY` | Massive context window (up to 2M tokens). |
 | **OpenAI** | `gpt-4o`, `o1-preview` | `OPENAI_API_KEY` | Strong all-rounder. |
+| **OpenAI-Compatible** | Any OpenAI-compatible API | `OPENAI_COMPATIBLE_API_KEY` | Set `OPENAI_COMPATIBLE_BASE_URL` for DeepSeek, Together, xAI, Perplexity, Fireworks, GitHub Models, etc. |
 | **Mistral** | `mistral-large`, `codestral` | `MISTRAL_API_KEY` | Excellent code-specific models. |
 | **Cohere** | `command-r-plus`, `command-r` | `COHERE_API_KEY` | Strong tool-use and RAG capabilities. |
 | **Groq** | `llama3-70b-8192`, `mixtral-8x7b-32768` | `GROQ_API_KEY` | Ultra-fast LPU inference (500+ tokens/sec). |
