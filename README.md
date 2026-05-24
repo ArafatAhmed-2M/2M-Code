@@ -317,7 +317,7 @@ make run-dev ARGS="team list"
 ## License
 
 Custom License — Non-Commercial, Attribution Required.
-© 2025 [Arafat Ahmed Mubin](https://github.com/ArafatAhmed-2M)
+© 2026 [Arafat Ahmed Mubin](https://github.com/ArafatAhmed-2M)
 
 You may use, modify, and distribute this software for **non-commercial purposes only**.
 Attribution to the original author is required in all copies and derivative works.
