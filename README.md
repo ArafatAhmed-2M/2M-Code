@@ -13,7 +13,7 @@
 
 > **Multi-Mind:** Instead of one AI assistant, deploy a team of AI agents that plan, implement, and review code together — each from the best model for the job.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: Custom](https://img.shields.io/badge/License-NonCommercial--Attribution-blue.svg)](LICENSE)
 [![Go Version](https://img.shields.io/badge/Go-1.22+-00ADD8?logo=go)](https://go.dev)
 [![Python Version](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python)](https://python.org)
 
@@ -316,7 +316,12 @@ make run-dev ARGS="team list"
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) for details.
+Custom License — Non-Commercial, Attribution Required.
+© 2025 [Arafat Ahmed Mubin](https://github.com/ArafatAhmed-2M)
+
+You may use, modify, and distribute this software for **non-commercial purposes only**.
+Attribution to the original author is required in all copies and derivative works.
+See [LICENSE](LICENSE) for full terms.
 
 ---
 

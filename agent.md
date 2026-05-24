@@ -115,7 +115,7 @@ You do not ask unnecessary questions. You read the specs, make sensible decision
 ├── go.sum
 ├── requirements.txt
 ├── Makefile
-├── LICENSE                          ← MIT
+├── LICENSE                          ← Non-Commercial / Attribution Required
 ├── PRD.md                           ← Product requirements (V2)
 ├── issue.md                         ← Bug/issue log
 ├── agent.md                         ← This file
