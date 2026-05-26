@@ -99,7 +99,10 @@ var validOrchestrations = map[string]bool{
 // LoadTeam loads a team configuration by name, searching in priority order:
 //   1. ./.2mcode/teams/<name>.yaml (project-local)
 //   2. ~/.2mcode/teams/<name>.yaml (global)
-//   3. config/teams/<name>.yaml (bundled with binary)
+//   3. ~/.2mcode/config/teams/<name>.yaml (installed)
+//   4. <execDir>/config/teams/<name>.yaml (bundled with binary)
+//   5. <execDir>/../config/teams/<name>.yaml (bundled, binary in subdir)
+//   6. config/teams/<name>.yaml (bundled, relative to CWD)
 //
 // Returns the loaded Team or an error with actionable guidance.
 func LoadTeam(name string) (*Team, error) {
@@ -111,10 +114,14 @@ func LoadTeam(name string) (*Team, error) {
 		}
 	}
 
-	return nil, fmt.Errorf(
-		"team '%s' not found — searched:\n  1. ./.2mcode/teams/%s.yaml\n  2. ~/.2mcode/teams/%s.yaml\n  3. ~/.2mcode/config/teams/%s.yaml\n  4. config/teams/%s.yaml\nRun '2m new-team' to create one, or '2m team list' to see available teams",
-		name, name, name, name, name,
-	)
+	// Build dynamic error message listing all searched paths
+	msg := fmt.Sprintf("team '%s' not found — searched:", name)
+	for i, p := range paths {
+		msg += fmt.Sprintf("\n  %d. %s", i+1, p)
+	}
+	msg += "\nRun '2m new-team' to create one, or '2m team list' to see available teams"
+
+	return nil, fmt.Errorf("%s", msg)
 }
 
 // getSearchPaths returns the ordered list of paths to search for a team YAML.
@@ -140,7 +147,10 @@ func getSearchPaths(name string) []string {
 	execPath, err := os.Executable()
 	if err == nil {
 		execDir := filepath.Dir(execPath)
+		// Binary in project root: bin/2m → bin/config/teams/
 		paths = append(paths, filepath.Join(execDir, "config", "teams", filename))
+		// Binary in subdirectory: bin/2m → config/teams/ (project root)
+		paths = append(paths, filepath.Join(filepath.Dir(execDir), "config", "teams", filename))
 	}
 	// Also check relative to working directory for development
 	paths = append(paths, filepath.Join("config", "teams", filename))
@@ -184,7 +194,9 @@ func ListTeams() (map[string]string, error) {
 
 	execPath, err := os.Executable()
 	if err == nil {
-		searchDirs = append(searchDirs, filepath.Join(filepath.Dir(execPath), "config", "teams"))
+		execDir := filepath.Dir(execPath)
+		searchDirs = append(searchDirs, filepath.Join(execDir, "config", "teams"))
+		searchDirs = append(searchDirs, filepath.Join(filepath.Dir(execDir), "config", "teams"))
 	}
 	searchDirs = append(searchDirs, filepath.Join("config", "teams"))
 
