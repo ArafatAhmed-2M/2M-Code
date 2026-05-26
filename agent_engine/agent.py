@@ -188,7 +188,8 @@ async def run_agent(req) -> dict:
         supported = ", ".join(sorted(PROVIDERS.keys()))
         raise KeyError(
             f"Unknown provider: '{req.provider}'. "
-            f"Supported providers: {supported}"
+            f"Supported providers: {supported} "
+            f"(openai_compatible covers DeepSeek, Together, xAI, Perplexity, Fireworks, GitHub Models, and any OpenAI-compatible API)"
         )
 
     provider, actual_provider = _resolve_provider(req.provider)

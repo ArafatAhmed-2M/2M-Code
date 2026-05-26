@@ -47,7 +47,7 @@ class MessageItem(BaseModel):
 class AgentRequest(BaseModel):
     """Request body for the /call endpoint."""
 
-    provider: str = Field(..., description="LLM provider: anthropic|google|openai|mistral")
+    provider: str = Field(..., description="LLM provider: anthropic|google|openai|openai_compatible|mistral|cohere|groq|ollama|openrouter")
     model: str = Field(..., description="Provider-specific model ID")
     system: str = Field(..., description="System prompt for the agent")
     messages: list[MessageItem] = Field(default_factory=list, description="Conversation history")
@@ -118,7 +118,7 @@ async def _call_non_streaming(req: AgentRequest) -> AgentResponse:
         logger.error("Unknown provider requested: %s", req.provider)
         raise HTTPException(
             status_code=400,
-            detail=f"Unknown provider: {req.provider}. Supported: anthropic, google, openai, openai_compatible, mistral, cohere, groq, ollama, openrouter",
+            detail=f"Unknown provider: {req.provider}. Supported: anthropic, google, openai, openai_compatible (covers DeepSeek, Together, xAI, Perplexity, Fireworks, GitHub Models, and any OpenAI-compatible API), mistral, cohere, groq, ollama, openrouter",
         ) from e
     except ValueError as e:
         logger.error("Invalid request parameters: %s", str(e))

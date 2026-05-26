@@ -177,7 +177,7 @@ func GetProviderAPIKey(provider string) (string, error) {
 
 	envVar, ok := envVars[provider]
 	if !ok {
-		return "", fmt.Errorf("unknown provider '%s' — supported: anthropic, google, openai, openai_compatible, mistral, cohere, groq, ollama, openrouter", provider)
+		return "", fmt.Errorf("unknown provider '%s' — supported: anthropic, google, openai, openai_compatible (covers DeepSeek, Together, xAI, Perplexity, Fireworks, GitHub Models, and any OpenAI-compatible API), mistral, cohere, groq, ollama, openrouter", provider)
 	}
 
 	key := os.Getenv(envVar)

@@ -89,6 +89,9 @@ func runNewTeam(cmd *cobra.Command, args []string) error {
 
 		role := prompt(scanner, promptStyle.Render("  Role (e.g., Tech Lead): "))
 		provider := promptWithOptions(scanner, promptStyle.Render("  Provider"), []string{"anthropic", "google", "openai", "openai_compatible", "mistral", "cohere", "groq", "ollama", "openrouter"})
+		if provider == "openai_compatible" {
+			fmt.Println("    Note: openai_compatible covers DeepSeek, Together, xAI, Perplexity, Fireworks, GitHub Models, and any OpenAI-compatible API.")
+		}
 		model := prompt(scanner, promptStyle.Render("  Model (e.g., claude-opus-4-5): "))
 
 		// Default system prompt

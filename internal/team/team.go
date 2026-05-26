@@ -38,7 +38,7 @@ type Team struct {
 type Agent struct {
 	Name         string   `yaml:"name"`          // Display name (e.g., "Aria")
 	Role         string   `yaml:"role"`          // Role label (e.g., "Tech Lead")
-	Provider     string   `yaml:"provider"`      // LLM provider: anthropic|google|openai|mistral|cohere|groq|ollama|openrouter
+	Provider     string   `yaml:"provider"`      // LLM provider: anthropic|google|openai|openai_compatible|mistral|cohere|groq|ollama|openrouter
 	Model        string   `yaml:"model"`         // Provider-specific model ID
 	SystemPrompt string   `yaml:"system_prompt"` // Full role prompt (150-300 words)
 	MaxContext   int      `yaml:"max_context"`   // Messages from team channel (default: 20)
@@ -262,7 +262,7 @@ func (t *Team) Validate() error {
 			return fmt.Errorf("agent '%s' has no role", agent.Name)
 		}
 		if !validProviders[agent.Provider] {
-			return fmt.Errorf("agent '%s' has invalid provider '%s' — use: anthropic, google, openai, openai_compatible, mistral, cohere, groq, ollama, openrouter", agent.Name, agent.Provider)
+			return fmt.Errorf("agent '%s' has invalid provider '%s' — use: anthropic, google, openai, openai_compatible (covers DeepSeek, Together, xAI, Perplexity, Fireworks, GitHub Models, and any OpenAI-compatible API), mistral, cohere, groq, ollama, openrouter", agent.Name, agent.Provider)
 		}
 		if agent.Model == "" {
 			return fmt.Errorf("agent '%s' has no model specified", agent.Name)
